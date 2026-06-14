@@ -1,0 +1,109 @@
+dashboard:
+  width: 800
+  height: 480
+  timezone: "Asia/Shanghai"
+  refresh_minutes: 3
+  lunar_text: ""
+  font_path: ""
+
+thresholds:
+  cpu: 85
+  mem: 85
+  disk: 90
+
+servers:
+  - name: "OC24"
+    host: "local"
+    disk_path: "/"
+  - name: "nosla"
+    host: "root@203.0.113.10"
+    disk_path: "/"
+  - name: "OC1g"
+    host: "ubuntu@203.0.113.30"
+    disk_path: "/"
+  - name: "DO4g"
+    host: "root@203.0.113.40"
+    disk_path: "/"
+
+sub2api:
+  name: "sub2api-nosla"
+  host: "root@203.0.113.10"
+  base_url: "http://203.0.113.10:8080"
+  systemd_service: "sub2api"
+  account_group: "gpt-team"
+  postgres:
+    enabled: true
+    database: "sub2api"
+    user: "sub2api"
+  tables:
+    accounts: "accounts"
+    account_groups: "account_groups"
+    groups: "groups"
+    api_keys: "api_keys"
+    channels: "channels"
+
+notion:
+  enabled: false
+  token_env: "NOTION_TOKEN"
+  database_id: ""
+  title_property: "Name"
+  status_property: "Status"
+  due_property: "Due"
+  priority_property: "Priority"
+  done_values: ["Done", "完成", "已完成"]
+  hide_done: true
+  limit: 8
+
+weather:
+  enabled: true
+  city: "北京"
+
+layout:
+  direction: column
+  padding: 8
+  gap: 6
+  children:
+    - size: 96
+      direction: row
+      gap: 8
+      children:
+        - size: 1
+          widget: lunar_calendar
+        - size: 1
+          widget: weather
+        - size: 210
+          widget: rings_legend
+          options:
+            title: "服务器图例"
+    - size: 1
+      direction: row
+      gap: 8
+      children:
+        - size: 2
+          direction: column
+          gap: 6
+          children:
+            - size: 1
+              widget: server_rings
+              options:
+                title: "服务器 (中心=峰值%)"
+                columns: 4
+            - size: 118
+              widget: notion_todo
+              options:
+                title: "今日待办"
+        - size: 1
+          direction: column
+          gap: 6
+          children:
+            - size: 196
+              widget: sub2api_panel
+              options:
+                title: "sub2api"
+            - size: 1
+              widget: quote
+              options:
+                quotes:
+                  - text: "每天进步一点点。"
+                    author: "佚名"
+                  - text: "把复杂的事做简单，把简单的事做到极致。"

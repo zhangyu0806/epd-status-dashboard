@@ -1,0 +1,9 @@
+[Unit]
+Description=Render EPD server status dashboard image
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/epd-status-dashboard
+ExecStart=/opt/epd-status-dashboard/oc24_render_once.sh

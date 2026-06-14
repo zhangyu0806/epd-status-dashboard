@@ -1,0 +1,14 @@
+[Unit]
+Description=Serve EPD server status dashboard image over HTTP
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/epd-status-dashboard/public
+ExecStart=/opt/epd-status-dashboard/.venv/bin/python -m http.server 8088 --bind 0.0.0.0 --directory /opt/epd-status-dashboard/public
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

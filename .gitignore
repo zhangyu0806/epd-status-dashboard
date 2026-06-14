@@ -1,0 +1,37 @@
+# 实际配置可能含 Notion token / 私有主机，不入库
+config.yaml
+*.local.yaml
+
+# 备份文件
+*.bak
+*.bak-*
+config.example.yaml.bak-old
+
+# 渲染输出
+public/
+*.png
+*.json
+encoded-test/
+known_hosts
+
+# 本地知识图谱产物，不入库
+graphify-out/
+
+# Windows 分发包是构建产物（且可能内嵌旧配置），按需用源码现打
+*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# 日志
+*.log
+logs/
+
+# 编辑器/系统
+.DS_Store
+.idea/
+.vscode/
