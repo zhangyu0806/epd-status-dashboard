@@ -41,16 +41,28 @@ class WeatherWidget(Widget):
             return
 
         city_font = load_font(14, bold=True)
-        temp_font = load_font(34, bold=True)
-        cond_font = load_font(15)
+        temp_font = load_font(30, bold=True)
+        cond_font = load_font(13)
         meta_font = load_font(12)
 
-        ctx.draw.text((rect.x + 8, line_y + 8), result.city, fill=BLACK, font=city_font)
-        temp_text = "--" if result.temp is None else f"{result.temp:.0f}°"
-        ctx.draw.text((rect.x + 8, line_y + 28), temp_text, fill=RED, font=temp_font)
-        tw = text_width(ctx.draw, temp_text, temp_font)
-        ctx.draw.text((rect.x + 12 + tw, line_y + 40), result.condition, fill=BLACK, font=cond_font)
+        ctx.draw.text((rect.x + 8, line_y + 6), result.city, fill=BLACK, font=city_font)
+        cw = text_width(ctx.draw, result.city, city_font)
+        if result.condition:
+            ctx.draw.text((rect.x + 14 + cw, line_y + 8), result.condition, fill=BLACK, font=cond_font)
 
+        temp_text = "--" if result.temp is None else f"{result.temp:.0f}°"
+        temp_y = line_y + 26
+        ctx.draw.text((rect.x + 8, temp_y), temp_text, fill=RED, font=temp_font)
+        tw = text_width(ctx.draw, temp_text, temp_font)
+
+        meta_x = rect.x + 16 + tw
+        meta_y = temp_y + 2
         if result.temp_max is not None and result.temp_min is not None:
-            hilo = f"高 {result.temp_max:.0f}°  低 {result.temp_min:.0f}°"
-            ctx.draw.text((rect.x + 8, rect.bottom - 20), hilo, fill=BLACK, font=meta_font)
+            hilo = f"高{result.temp_max:.0f}° 低{result.temp_min:.0f}°"
+            ctx.draw.text((meta_x, meta_y), hilo, fill=BLACK, font=meta_font)
+
+        if result.aqi is not None:
+            aqi_color = RED if result.aqi > 100 else BLACK
+            pm = f" PM{result.pm25:.0f}" if result.pm25 is not None else ""
+            aqi_text = f"AQI {result.aqi} {result.aqi_label}{pm}"
+            ctx.draw.text((meta_x, meta_y + 16), aqi_text, fill=aqi_color, font=meta_font)

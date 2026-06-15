@@ -50,6 +50,49 @@ class WeatherResult:
     temp_min: float | None = None
     condition: str = ""
     detail: str = ""
+    aqi: int | None = None
+    pm25: float | None = None
+    aqi_label: str = ""
+
+
+def _aqi_label(aqi: int | None) -> str:
+    """US AQI 等级（中文）。"""
+    if aqi is None:
+        return ""
+    if aqi <= 50:
+        return "优"
+    if aqi <= 100:
+        return "良"
+    if aqi <= 150:
+        return "轻度"
+    if aqi <= 200:
+        return "中度"
+    if aqi <= 300:
+        return "重度"
+    return "严重"
+
+
+def _collect_air_quality(lat: float, lon: float) -> tuple[int | None, float | None]:
+    """取 US AQI 与 PM2.5；失败返回 (None, None)，不影响主天气。"""
+    try:
+        resp = requests.get(
+            "https://air-quality-api.open-meteo.com/v1/air-quality",
+            params={
+                "latitude": lat,
+                "longitude": lon,
+                "current": "pm2_5,us_aqi",
+                "timezone": "auto",
+            },
+            timeout=8,
+        )
+        current = resp.json().get("current") or {}
+    except (requests.RequestException, ValueError):
+        return None, None
+    aqi_raw = current.get("us_aqi")
+    pm25_raw = current.get("pm2_5")
+    aqi = int(round(aqi_raw)) if aqi_raw is not None else None
+    pm25 = float(pm25_raw) if pm25_raw is not None else None
+    return aqi, pm25
 
 
 def _geocode(city: str) -> tuple[float, float] | None:
@@ -105,6 +148,10 @@ def collect_weather(cfg: dict[str, Any]) -> WeatherResult:
     temp_max = (daily.get("temperature_2m_max") or [None])[0]
     temp_min = (daily.get("temperature_2m_min") or [None])[0]
 
+    aqi = pm25 = None
+    if cfg.get("air_quality", True):
+        aqi, pm25 = _collect_air_quality(float(lat), float(lon))
+
     return WeatherResult(
         ok=True,
         configured=True,
@@ -114,4 +161,7 @@ def collect_weather(cfg: dict[str, Any]) -> WeatherResult:
         temp_min=temp_min,
         condition=_WEATHER_CODE.get(code, "未知"),
         detail="OK",
+        aqi=aqi,
+        pm25=pm25,
+        aqi_label=_aqi_label(aqi),
     )

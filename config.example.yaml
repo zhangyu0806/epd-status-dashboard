@@ -56,14 +56,15 @@ notion:
 
 weather:
   enabled: true
-  city: "北京"
+  city: "大连"
+  air_quality: true
 
 layout:
   direction: column
   padding: 8
   gap: 6
   children:
-    - size: 96
+    - px: 96
       direction: row
       gap: 8
       children:
@@ -71,7 +72,7 @@ layout:
           widget: lunar_calendar
         - size: 1
           widget: weather
-        - size: 210
+        - px: 210
           widget: rings_legend
           options:
             title: "服务器图例"
@@ -79,7 +80,7 @@ layout:
       direction: row
       gap: 8
       children:
-        - size: 2
+        - size: 1
           direction: column
           gap: 6
           children:
@@ -87,23 +88,20 @@ layout:
               widget: server_rings
               options:
                 title: "服务器 (中心=峰值%)"
-                columns: 4
-            - size: 118
-              widget: notion_todo
-              options:
-                title: "今日待办"
-        - size: 1
-          direction: column
-          gap: 6
-          children:
-            - size: 196
+                columns: 2
+            - px: 150
               widget: sub2api_panel
               options:
                 title: "sub2api"
-            - size: 1
+                quota_title: "Pro20X 余量"
+            - px: 40
               widget: quote
               options:
                 quotes:
                   - text: "每天进步一点点。"
                     author: "佚名"
                   - text: "把复杂的事做简单，把简单的事做到极致。"
+        - size: 1
+          widget: notion_todo
+          options:
+            title: "今日待办"

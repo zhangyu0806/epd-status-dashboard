@@ -31,6 +31,9 @@ class Sub2ApiMetric:
     active_api_keys: int | None
     rate_limit: str
     detail: str
+    quota_label: str = ""
+    quota_5h_remaining: int | None = None
+    quota_7d_remaining: int | None = None
 
     def blocked_count(self) -> int | None:
         if self.overloaded_accounts is None and self.temp_blocked_accounts is None:
@@ -102,6 +105,26 @@ def _sql_literal(value: str) -> str:
     return "'" + value.replace("'", "''") + "'"
 
 
+def _collect_quota(host: str, database: str, user: str, accounts_table: str, account_groups_table: str, groups_table: str, quota_group: str) -> tuple[int | None, int | None]:
+    sql = f"""
+    select
+      round(avg((a.extra->>'codex_5h_used_percent')::numeric))::int as used_5h,
+      round(avg((a.extra->>'codex_7d_used_percent')::numeric))::int as used_7d
+    from {accounts_table} a
+    join {account_groups_table} ag on ag.account_id = a.id
+    join {groups_table} g on g.id = ag.group_id
+    where a.deleted_at is null
+      and g.name = {_sql_literal(quota_group)}
+      and a.extra ? 'codex_5h_used_percent'
+    """.strip()
+    row = _psql_single_row(host, database, user, sql, ["used_5h", "used_7d"])
+    used_5h = _row_int(row, "used_5h")
+    used_7d = _row_int(row, "used_7d")
+    remaining_5h = (100 - used_5h) if used_5h is not None else None
+    remaining_7d = (100 - used_7d) if used_7d is not None else None
+    return remaining_5h, remaining_7d
+
+
 def collect_sub2api(config: dict[str, Any]) -> Sub2ApiMetric:
     host = str(config.get("host", "nosla"))
     base_url = str(config.get("base_url", ""))
@@ -121,6 +144,8 @@ def collect_sub2api(config: dict[str, Any]) -> Sub2ApiMetric:
     active_accounts = schedulable_accounts = rate_limited_accounts = None
     overloaded_accounts = temp_blocked_accounts = expired_accounts = None
     active_api_keys = None
+    quota_5h_remaining = quota_7d_remaining = None
+    quota_group = str(config.get("quota_group", "")).strip()
 
     if pg.get("enabled", True):
         database = str(pg.get("database", "sub2api"))
@@ -193,11 +218,23 @@ def collect_sub2api(config: dict[str, Any]) -> Sub2ApiMetric:
             api_keys = current_api_keys
         active_api_keys = _row_int(key_health, "active_api_keys")
 
+        if quota_group:
+            quota_5h_remaining, quota_7d_remaining = _collect_quota(
+                host, database, user, accounts_table, account_groups_table, groups_table, quota_group
+            )
+
     if rate_limited_accounts is None:
         rate_limit = "限流: 未采集"
     else:
         extra_blocks = (overloaded_accounts or 0) + (temp_blocked_accounts or 0)
         rate_limit = f"限流: {rate_limited_accounts}  阻塞: {extra_blocks}"
+
+    quota_parts: list[str] = []
+    if quota_5h_remaining is not None:
+        quota_parts.append(f"5h {quota_5h_remaining}%")
+    if quota_7d_remaining is not None:
+        quota_parts.append(f"7d {quota_7d_remaining}%")
+    quota_label = "  ".join(quota_parts)
 
     return Sub2ApiMetric(
         ok=service_ok and http_ok,
@@ -215,4 +252,7 @@ def collect_sub2api(config: dict[str, Any]) -> Sub2ApiMetric:
         active_api_keys=active_api_keys,
         rate_limit=rate_limit,
         detail="HTTP OK" if http_ok else "HTTP FAIL",
+        quota_label=quota_label,
+        quota_5h_remaining=quota_5h_remaining,
+        quota_7d_remaining=quota_7d_remaining,
     )
