@@ -46,6 +46,8 @@ class NotionTodoWidget(Widget):
         item_font = load_font(22)
         meta_font = load_font(19)
         show_due = bool(self.opt("show_due", True))
+        show_priority = bool(self.opt("show_priority", False))
+        show_status = bool(self.opt("show_status", False))
         row_h = int(self.opt("row_height", 37))
         y = body.y
         for todo in result.todos:
@@ -53,15 +55,23 @@ class NotionTodoWidget(Widget):
                 break
             ctx.draw.ellipse([body.x, y + 9, body.x + 12, y + 21], outline=BLACK, width=1)
             text_x = body.x + 24
-            meta = ""
+            is_high = bool(todo.priority and str(todo.priority).lower() in {"high", "高", "urgent", "紧急"})
+
+            meta_parts: list[str] = []
+            if show_priority and todo.priority:
+                meta_parts.append(str(todo.priority))
+            if show_status and todo.status:
+                meta_parts.append(str(todo.status))
             if show_due and todo.due:
-                meta = f"  {todo.due[:10]}"
+                meta_parts.append(todo.due[:10])
+            meta = "  ".join(meta_parts)
+
             avail = body.right - text_x
             meta_w = 0
             if meta:
-                meta_w = int(ctx.draw.textlength(meta, font=meta_font)) + 4
+                meta_w = int(ctx.draw.textlength(meta, font=meta_font)) + 8
             label = fit_text(ctx.draw, todo.title, item_font, max(20, avail - meta_w))
-            label_color = RED if (todo.priority and str(todo.priority).lower() in {"high", "高", "urgent", "紧急"}) else BLACK
+            label_color = RED if is_high else BLACK
             ctx.draw.text((text_x, y), label, fill=label_color, font=item_font)
             if meta:
                 mw = int(ctx.draw.textlength(meta, font=meta_font))

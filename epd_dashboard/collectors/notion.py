@@ -21,6 +21,7 @@ class NotionTodo:
     done: bool
     due: str | None = None
     priority: str | None = None
+    status: str | None = None
 
 
 @dataclass
@@ -104,6 +105,7 @@ def collect_notion(cfg: dict[str, Any]) -> NotionResult:
     due_prop = cfg.get("due_property")
     priority_prop = cfg.get("priority_property")
     done_values = [str(v) for v in (cfg.get("done_values") or ["Done", "完成", "已完成"])]
+    active_values = [str(v) for v in (cfg.get("active_values") or [])]
     hide_done = bool(cfg.get("hide_done", True))
     limit = int(cfg.get("limit", 8))
 
@@ -133,14 +135,18 @@ def collect_notion(cfg: dict[str, Any]) -> NotionResult:
         return NotionResult(ok=False, configured=True, detail=f"API {response.status_code}")
 
     results = response.json().get("results", [])
+    status_key = status_prop if isinstance(status_prop, str) else None
     todos: list[NotionTodo] = []
     for row in results:
         props = row.get("properties", {})
         title = _extract_title(props, title_prop if isinstance(title_prop, str) else None)
         if not title:
             continue
-        done = _extract_done(props, status_prop if isinstance(status_prop, str) else None, done_values)
+        done = _extract_done(props, status_key, done_values)
         if hide_done and done:
+            continue
+        status_name = _extract_plain_prop(props, status_key)
+        if active_values and str(status_name or "") not in active_values:
             continue
         todos.append(
             NotionTodo(
@@ -148,6 +154,7 @@ def collect_notion(cfg: dict[str, Any]) -> NotionResult:
                 done=done,
                 due=_extract_plain_prop(props, due_prop if isinstance(due_prop, str) else None),
                 priority=_extract_plain_prop(props, priority_prop if isinstance(priority_prop, str) else None),
+                status=status_name,
             )
         )
         if len(todos) >= limit:

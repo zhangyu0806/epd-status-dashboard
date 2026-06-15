@@ -51,8 +51,9 @@ notion:
   due_property: "Due"
   priority_property: "Priority"
   done_values: ["Done", "完成", "已完成"]
+  active_values: ["Doing", "进行中"]   # 只显示这些状态的待办；留空 [] 则显示全部未完成
   hide_done: true
-  limit: 8
+  limit: 12
 
 weather:
   enabled: true
@@ -88,7 +89,10 @@ layout:
               options:
                 title: "sub2api"
                 quota_title: "Pro20X 余量"
-        - size: 1
+        - size: 2
           widget: notion_todo
           options:
             title: "今日待办"
+            show_due: true
+            show_priority: false
+            show_status: false

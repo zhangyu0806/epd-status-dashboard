@@ -14,6 +14,10 @@ public/
 encoded-test/
 known_hosts
 
+# docs 下的预览图需要入库展示（JSON 含真实数据，不入库）
+!docs/
+!docs/*.png
+
 # 本地知识图谱产物，不入库
 graphify-out/
 
