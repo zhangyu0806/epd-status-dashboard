@@ -109,55 +109,68 @@ def collect_notion(cfg: dict[str, Any]) -> NotionResult:
     hide_done = bool(cfg.get("hide_done", True))
     limit = int(cfg.get("limit", 8))
 
-    payload: dict[str, Any] = {"page_size": min(100, max(limit * 2, limit + 2))}
+    base_payload: dict[str, Any] = {"page_size": 100}
     body_filter = cfg.get("filter")
     if isinstance(body_filter, dict):
-        payload["filter"] = body_filter
+        base_payload["filter"] = body_filter
     sorts = cfg.get("sorts")
     if isinstance(sorts, list):
-        payload["sorts"] = sorts
+        base_payload["sorts"] = sorts
 
-    try:
-        response = requests.post(
-            f"https://api.notion.com/v1/databases/{database_id}/query",
-            headers={
-                "Authorization": f"Bearer {token}",
-                "Notion-Version": NOTION_VERSION,
-                "Content-Type": "application/json",
-            },
-            json=payload,
-            timeout=10,
-        )
-    except requests.RequestException as exc:
-        return NotionResult(ok=False, configured=True, detail=f"请求失败: {exc}")
-
-    if response.status_code != 200:
-        return NotionResult(ok=False, configured=True, detail=f"API {response.status_code}")
-
-    results = response.json().get("results", [])
     status_key = status_prop if isinstance(status_prop, str) else None
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Notion-Version": NOTION_VERSION,
+        "Content-Type": "application/json",
+    }
+
     todos: list[NotionTodo] = []
-    for row in results:
-        props = row.get("properties", {})
-        title = _extract_title(props, title_prop if isinstance(title_prop, str) else None)
-        if not title:
-            continue
-        done = _extract_done(props, status_key, done_values)
-        if hide_done and done:
-            continue
-        status_name = _extract_plain_prop(props, status_key)
-        if active_values and str(status_name or "") not in active_values:
-            continue
-        todos.append(
-            NotionTodo(
-                title=title,
-                done=done,
-                due=_extract_plain_prop(props, due_prop if isinstance(due_prop, str) else None),
-                priority=_extract_plain_prop(props, priority_prop if isinstance(priority_prop, str) else None),
-                status=status_name,
+    cursor: str | None = None
+    max_pages = int(cfg.get("max_pages", 5))
+    for _ in range(max(1, max_pages)):
+        payload = dict(base_payload)
+        if cursor:
+            payload["start_cursor"] = cursor
+        try:
+            response = requests.post(
+                f"https://api.notion.com/v1/databases/{database_id}/query",
+                headers=headers,
+                json=payload,
+                timeout=10,
             )
-        )
-        if len(todos) >= limit:
+        except requests.RequestException as exc:
+            return NotionResult(ok=False, configured=True, detail=f"请求失败: {exc}")
+        if response.status_code != 200:
+            return NotionResult(ok=False, configured=True, detail=f"API {response.status_code}")
+
+        body = response.json()
+        for row in body.get("results", []):
+            props = row.get("properties", {})
+            title = _extract_title(props, title_prop if isinstance(title_prop, str) else None)
+            if not title:
+                continue
+            done = _extract_done(props, status_key, done_values)
+            if hide_done and done:
+                continue
+            status_name = _extract_plain_prop(props, status_key)
+            if active_values and str(status_name or "") not in active_values:
+                continue
+            todos.append(
+                NotionTodo(
+                    title=title,
+                    done=done,
+                    due=_extract_plain_prop(props, due_prop if isinstance(due_prop, str) else None),
+                    priority=_extract_plain_prop(props, priority_prop if isinstance(priority_prop, str) else None),
+                    status=status_name,
+                )
+            )
+            if len(todos) >= limit:
+                break
+
+        if len(todos) >= limit or not body.get("has_more"):
+            break
+        cursor = body.get("next_cursor")
+        if not cursor:
             break
 
     return NotionResult(ok=True, configured=True, todos=todos, detail=f"{len(todos)} 条")
