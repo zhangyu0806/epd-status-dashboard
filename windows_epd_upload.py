@@ -223,7 +223,7 @@ def load_bleak() -> tuple[BleClientFactory, BleScanner]:
     try:
         bleak = importlib.import_module("bleak")
     except ImportError as exc:
-        raise RuntimeError("缺少 Windows BLE 依赖，请先运行: pip install -r requirements-windows.txt") from exc
+        raise RuntimeError("缺少 BLE 依赖 bleak，请先运行: pip install -r requirements-uploader.txt") from exc
     client_class = cast(BleClientFactory, getattr(bleak, "BleakClient"))
     scanner_class = cast(BleScanner, getattr(bleak, "BleakScanner"))
     return client_class, scanner_class

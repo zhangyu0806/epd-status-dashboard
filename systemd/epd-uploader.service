@@ -1,0 +1,15 @@
+[Unit]
+Description=EPD dashboard BLE uploader (download status.png and push to e-ink over Bluetooth)
+Wants=network-online.target bluetooth.target
+After=network-online.target bluetooth.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/epd-status-dashboard
+EnvironmentFile=-/etc/epd-uploader.env
+ExecStart=/opt/epd-status-dashboard/uploader_run.sh
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target

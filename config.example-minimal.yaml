@@ -1,0 +1,41 @@
+# 极简入门配置：服务器监控 + 天气 + 时钟 + 农历，不依赖 sub2api / Notion。
+# 复制为 config.yaml 后按需修改。完整模块与选项见 config.example.yaml 和 README。
+
+dashboard:
+  width: 800
+  height: 480
+  timezone: "Asia/Shanghai"
+  refresh_minutes: 3
+  font_path: ""        # 留空自动探测系统中文字体
+
+thresholds:
+  cpu: 85
+  mem: 85
+  disk: 90
+
+servers:
+  - {name: "本机", host: "local", disk_path: "/"}
+  # 远程主机需先配置 SSH 免密登录：
+  # - {name: "VPS", host: "root@203.0.113.10", disk_path: "/"}
+
+weather:
+  enabled: true
+  city: "北京"
+  air_quality: true
+
+layout:
+  direction: column
+  padding: 8
+  gap: 6
+  children:
+    - px: 110
+      direction: row
+      gap: 8
+      children:
+        - {size: 1, widget: lunar_calendar}
+        - {size: 1, widget: weather}
+        - {size: 1, widget: clock, options: {show_date: false}}
+    - size: 1
+      widget: server_rings
+      options:
+        columns: 2

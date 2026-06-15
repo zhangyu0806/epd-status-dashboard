@@ -7,4 +7,4 @@ OUTPUT="${EPD_STATUS_OUTPUT:-$APP_DIR/public/status.png}"
 
 mkdir -p "$(dirname "$OUTPUT")"
 cd "$APP_DIR"
-exec "$APP_DIR/.venv/bin/python" "$APP_DIR/oc24_generate_status.py" --config "$CONFIG" --output "$OUTPUT"
+exec "$APP_DIR/.venv/bin/python" "$APP_DIR/generate.py" --config "$CONFIG" --output "$OUTPUT"
