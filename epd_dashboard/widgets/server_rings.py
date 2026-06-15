@@ -72,7 +72,7 @@ class ServerRingsWidget(Widget):
             col = index % columns
             row = index // columns
             cx = rect.x + col * cell_w + cell_w // 2
-            cy = top + row * cell_h + cell_h // 2 - 6
+            cy = top + row * cell_h + cell_h // 2 - 12
             self._draw_one(ctx, metric, cx, cy, min(cell_w, cell_h), cpu_warn, mem_warn, disk_warn)
 
     def _draw_one(
@@ -86,36 +86,42 @@ class ServerRingsWidget(Widget):
         mem_warn: int,
         disk_warn: int,
     ) -> None:
-        outer = max(28, min(cell // 2 - 18, 60))
+        outer = max(34, min(cell // 2 - 16, 78))
+        gap = max(9, outer // 4)
         offline = not metric.ok
-        box = [cx - outer, cy - outer, cx + outer, cy + outer]
-        ctx.draw.arc(box, start=0, end=360, fill=BLACK, width=1)
-
-        peak = metric.peak()
-        over = (
-            (metric.cpu is not None and metric.cpu >= cpu_warn)
-            or (metric.mem is not None and metric.mem >= mem_warn)
-            or (metric.disk is not None and metric.disk >= disk_warn)
-        )
-        if not offline and peak is not None:
-            color = RED if over else BLACK
-            draw_ring(ctx.draw, cx, cy, outer, peak, color, width=7)
+        rings = [
+            (metric.mem, mem_warn, outer),
+            (metric.cpu, cpu_warn, outer - gap),
+            (metric.disk, disk_warn, outer - gap * 2),
+        ]
+        for pct, warn, radius in rings:
+            if radius <= 4:
+                continue
+            box = [cx - radius, cy - radius, cx + radius, cy + radius]
+            ctx.draw.arc(box, start=0, end=360, fill=BLACK, width=1)
+            if offline or pct is None:
+                continue
+            color = RED if pct >= warn else BLACK
+            draw_ring(ctx.draw, cx, cy, radius, pct, color, width=6)
 
         center_font = load_font(20, bold=True)
         if offline:
             ctx.draw.line([cx - outer + 8, cy - outer + 8, cx + outer - 8, cy + outer - 8], fill=RED, width=3)
             ctx.draw.line([cx - outer + 8, cy + outer - 8, cx + outer - 8, cy - outer + 8], fill=RED, width=3)
         else:
-            center = "--" if peak is None else f"{peak:.0f}"
-            draw_centered_text(ctx.draw, (cx - outer, cy - 13, cx + outer, cy + 13), center, center_font, BLACK)
+            center = "--" if metric.mem is None else f"{metric.mem:.0f}"
+            center_color = RED if (metric.mem is not None and metric.mem >= mem_warn) else BLACK
+            draw_centered_text(ctx.draw, (cx - outer, cy - 13, cx + outer, cy + 13), center, center_font, center_color)
 
         name_font = load_font(14, bold=True)
-        name_color = RED if offline else BLACK
-        name = fit_text(ctx.draw, metric.name, name_font, cell - 6)
-        nw = text_width(ctx.draw, name, name_font)
-        ctx.draw.text((cx - nw // 2, cy + outer + 6), name, fill=name_color, font=name_font)
-
         status_font = load_font(12)
+        name_color = RED if offline else BLACK
         status = "离线" if offline else "在线"
+        name = fit_text(ctx.draw, metric.name, name_font, cell - 40)
+        nw = text_width(ctx.draw, name, name_font)
         sw = text_width(ctx.draw, status, status_font)
-        ctx.draw.text((cx - sw // 2, cy + outer + 25), status, fill=name_color, font=status_font)
+        total_w = nw + 6 + sw
+        start_x = cx - total_w // 2
+        label_y = cy + outer + 8
+        ctx.draw.text((start_x, label_y), name, fill=name_color, font=name_font)
+        ctx.draw.text((start_x + nw + 6, label_y + 2), status, fill=name_color, font=status_font)

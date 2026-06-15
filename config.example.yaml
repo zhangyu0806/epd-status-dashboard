@@ -82,7 +82,6 @@ layout:
             - size: 1
               widget: server_rings
               options:
-                title: "服务器 (中心=峰值%)"
                 columns: 2
             - px: 150
               widget: sub2api_panel
