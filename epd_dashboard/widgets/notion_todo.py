@@ -43,16 +43,16 @@ class NotionTodoWidget(Widget):
             draw_centered_text(ctx.draw, (body.x, body.y, body.right, body.bottom), "暂无待办", load_font(13), BLACK)
             return
 
-        item_font = load_font(18)
-        meta_font = load_font(15)
+        item_font = load_font(20)
+        meta_font = load_font(17)
         show_due = bool(self.opt("show_due", True))
-        row_h = int(self.opt("row_height", 31))
+        row_h = int(self.opt("row_height", 34))
         y = body.y
         for todo in result.todos:
             if y + row_h > body.bottom:
                 break
-            ctx.draw.ellipse([body.x, y + 7, body.x + 10, y + 17], outline=BLACK, width=1)
-            text_x = body.x + 20
+            ctx.draw.ellipse([body.x, y + 8, body.x + 11, y + 19], outline=BLACK, width=1)
+            text_x = body.x + 22
             meta = ""
             if show_due and todo.due:
                 meta = f"  {todo.due[:10]}"
