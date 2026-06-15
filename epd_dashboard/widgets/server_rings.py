@@ -104,14 +104,14 @@ class ServerRingsWidget(Widget):
             color = RED if pct >= warn else BLACK
             draw_ring(ctx.draw, cx, cy, radius, pct, color, width=6)
 
-        center_font = load_font(20, bold=True)
+        center_font = load_font(17, bold=True)
         if offline:
             ctx.draw.line([cx - outer + 8, cy - outer + 8, cx + outer - 8, cy + outer - 8], fill=RED, width=3)
             ctx.draw.line([cx - outer + 8, cy + outer - 8, cx + outer - 8, cy - outer + 8], fill=RED, width=3)
         else:
             center = "--" if metric.mem is None else f"{metric.mem:.0f}"
             center_color = RED if (metric.mem is not None and metric.mem >= mem_warn) else BLACK
-            draw_centered_text(ctx.draw, (cx - outer, cy - 13, cx + outer, cy + 13), center, center_font, center_color)
+            draw_centered_text(ctx.draw, (cx - outer, cy - 11, cx + outer, cy + 11), center, center_font, center_color)
 
         name_font = load_font(14, bold=True)
         status_font = load_font(12)

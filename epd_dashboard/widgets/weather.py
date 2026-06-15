@@ -30,7 +30,6 @@ class WeatherWidget(Widget):
         title_font = load_font(15, bold=True)
         ctx.draw.text((rect.x + 2, rect.y + 2), title, fill=RED, font=title_font)
         line_y = rect.y + 24
-        ctx.draw.line([rect.x + 2, line_y, rect.right - 4, line_y], fill=BLACK, width=1)
         body = (rect.x + 2, line_y + 4, rect.right - 4, rect.bottom - 4)
 
         if not result.configured:
