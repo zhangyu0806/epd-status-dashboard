@@ -56,29 +56,27 @@ class Sub2ApiPanelWidget(Widget):
         ctx.draw.line([rect.x + 4, line_y, rect.right - 4, line_y], fill=BLACK, width=1)
 
         y = line_y + 8
-        scope = metric.account_group or "全部"
+        http_text = "OK" if metric.ok else metric.detail
         rows = [
-            ("分组", scope),
-            ("服务", metric.service),
-            ("HTTP", "OK" if metric.ok else metric.detail),
-            ("账号", "--" if metric.accounts is None else str(metric.accounts)),
-            ("可调度", "--" if metric.schedulable_accounts is None else str(metric.schedulable_accounts)),
-            ("Key", "--" if metric.active_api_keys is None else f"{metric.active_api_keys}/{metric.api_keys or 0}"),
+            ("服务", metric.service, "HTTP", http_text),
+            ("账号", "--" if metric.accounts is None else str(metric.accounts), "可调度", "--" if metric.schedulable_accounts is None else str(metric.schedulable_accounts)),
+            ("Key", "--" if metric.active_api_keys is None else f"{metric.active_api_keys}/{metric.api_keys or 0}", "阻塞", "--" if metric.blocked_count() is None else str(metric.blocked_count())),
         ]
-        blocked = metric.blocked_count()
-        rows.append(("阻塞", "--" if blocked is None else str(blocked)))
 
         has_quota = metric.quota_5h_remaining is not None or metric.quota_7d_remaining is not None
         quota_reserve = 56 if has_quota else 0
         rows_bottom = rect.bottom - quota_reserve
+        mid_x = rect.x + rect.w // 2
 
-        for label, value in rows:
+        for l1, v1, l2, v2 in rows:
             if y + 18 > rows_bottom:
                 break
-            ctx.draw.text((rect.x + 8, y), label, fill=BLACK, font=small_font)
-            value_color = RED if (label == "阻塞" and value not in {"--", "0"}) else BLACK
-            text = fit_text(ctx.draw, str(value), body_font, rect.w - 70)
-            ctx.draw.text((rect.x + 64, y), text, fill=value_color, font=body_font)
+            ctx.draw.text((rect.x + 8, y), l1, fill=BLACK, font=small_font)
+            c1 = RED if (l1 == "阻塞" and v1 not in {"--", "0"}) else BLACK
+            ctx.draw.text((rect.x + 56, y), fit_text(ctx.draw, str(v1), body_font, mid_x - rect.x - 60), fill=c1, font=body_font)
+            ctx.draw.text((mid_x + 4, y), l2, fill=BLACK, font=small_font)
+            c2 = RED if (l2 == "阻塞" and v2 not in {"--", "0"}) else BLACK
+            ctx.draw.text((mid_x + 52, y), fit_text(ctx.draw, str(v2), body_font, rect.right - mid_x - 56), fill=c2, font=body_font)
             y += 19
 
         if has_quota:

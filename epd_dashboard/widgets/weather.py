@@ -28,10 +28,10 @@ class WeatherWidget(Widget):
         result = _weather(ctx)
         title = str(self.opt("title", "天气"))
         title_font = load_font(15, bold=True)
-        ctx.draw.text((rect.x + 4, rect.y + 2), title, fill=RED, font=title_font)
+        ctx.draw.text((rect.x + 2, rect.y + 2), title, fill=RED, font=title_font)
         line_y = rect.y + 24
-        ctx.draw.line([rect.x + 4, line_y, rect.right - 4, line_y], fill=BLACK, width=1)
-        body = (rect.x + 4, line_y + 4, rect.right - 4, rect.bottom - 4)
+        ctx.draw.line([rect.x + 2, line_y, rect.right - 4, line_y], fill=BLACK, width=1)
+        body = (rect.x + 2, line_y + 4, rect.right - 4, rect.bottom - 4)
 
         if not result.configured:
             draw_centered_text(ctx.draw, body, "天气未配置", load_font(13), BLACK)
@@ -45,17 +45,17 @@ class WeatherWidget(Widget):
         cond_font = load_font(13)
         meta_font = load_font(12)
 
-        ctx.draw.text((rect.x + 8, line_y + 6), result.city, fill=BLACK, font=city_font)
+        ctx.draw.text((rect.x + 2, line_y + 6), result.city, fill=BLACK, font=city_font)
         cw = text_width(ctx.draw, result.city, city_font)
         if result.condition:
-            ctx.draw.text((rect.x + 14 + cw, line_y + 8), result.condition, fill=BLACK, font=cond_font)
+            ctx.draw.text((rect.x + 8 + cw, line_y + 8), result.condition, fill=BLACK, font=cond_font)
 
         temp_text = "--" if result.temp is None else f"{result.temp:.0f}°"
         temp_y = line_y + 26
-        ctx.draw.text((rect.x + 8, temp_y), temp_text, fill=RED, font=temp_font)
+        ctx.draw.text((rect.x + 2, temp_y), temp_text, fill=RED, font=temp_font)
         tw = text_width(ctx.draw, temp_text, temp_font)
 
-        meta_x = rect.x + 16 + tw
+        meta_x = rect.x + 8 + tw
         meta_y = temp_y + 2
         if result.temp_max is not None and result.temp_min is not None:
             hilo = f"高{result.temp_max:.0f}° 低{result.temp_min:.0f}°"

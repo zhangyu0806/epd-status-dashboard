@@ -64,26 +64,21 @@ layout:
   padding: 8
   gap: 6
   children:
-    - px: 96
-      direction: row
-      gap: 8
-      children:
-        - size: 1
-          widget: lunar_calendar
-        - size: 1
-          widget: weather
-        - px: 210
-          widget: rings_legend
-          options:
-            title: "服务器图例"
-    - size: 1
-      direction: row
+    - direction: row
       gap: 8
       children:
         - size: 1
           direction: column
           gap: 6
           children:
+            - px: 96
+              direction: row
+              gap: 8
+              children:
+                - size: 1
+                  widget: lunar_calendar
+                - size: 1
+                  widget: weather
             - size: 1
               widget: server_rings
               options:
@@ -94,13 +89,6 @@ layout:
               options:
                 title: "sub2api"
                 quota_title: "Pro20X 余量"
-            - px: 40
-              widget: quote
-              options:
-                quotes:
-                  - text: "每天进步一点点。"
-                    author: "佚名"
-                  - text: "把复杂的事做简单，把简单的事做到极致。"
         - size: 1
           widget: notion_todo
           options:
