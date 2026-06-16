@@ -286,7 +286,7 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 .\install-windows-autostart.ps1
 ```
 
-它会把程序装到 `%LOCALAPPDATA%\EpdStatusDashboard`、建好 Python 环境、注册一个开机自启的计划任务。默认每 600 秒一轮：先确认云服务器那张图更新了，再下载、蓝牙送屏，避免反复刷屏。
+它会把程序装到 `%LOCALAPPDATA%\EpdStatusDashboard`、建好 Python 环境、注册一个开机自启的计划任务。默认每 7 分钟（420 秒）一轮：先确认云服务器那张图更新了，再下载、蓝牙送屏，避免反复刷屏。
 
 看日志：
 
@@ -336,7 +336,7 @@ class MyWidget(Widget):
 - 云服务器没有蓝牙，**必须**有树莓派/Windows/本地小主机当送图网关。
 - 远程服务器监控要先配 SSH 免密，否则取不到数据。
 - 中文显示成方块 → 装中文字体（见第七节）。
-- 刷新间隔最小强制 600 秒，刷太勤会伤墨水屏。
+- 刷新间隔最小强制 300 秒，刷太勤会伤墨水屏。
 - 这块屏只认黑/白/红三色，框架已自动处理，你写积木不用管。
 - 屏幕断电后画面还在（墨水屏特性），换电池或停服务期间也不会变白。
 

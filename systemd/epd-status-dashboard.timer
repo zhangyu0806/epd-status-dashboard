@@ -1,9 +1,9 @@
 [Unit]
-Description=Render EPD server status dashboard every 3 minutes
+Description=Render EPD server status dashboard every 2 minutes
 
 [Timer]
 OnBootSec=30s
-OnUnitActiveSec=3min
+OnUnitActiveSec=2min
 AccuracySec=30s
 Persistent=true
 Unit=epd-status-dashboard.service

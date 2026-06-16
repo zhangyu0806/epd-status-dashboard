@@ -26,11 +26,14 @@ def _weather(ctx: RenderContext) -> WeatherResult:
 class WeatherWidget(Widget):
     def render(self, ctx: RenderContext, rect: Rect) -> None:
         result = _weather(ctx)
-        title = str(self.opt("title", "天气"))
-        title_font = load_font(15, bold=True)
-        ctx.draw.text((rect.x + 2, rect.y + 2), title, fill=RED, font=title_font)
-        line_y = rect.y + 24
-        body = (rect.x + 2, line_y + 4, rect.right - 4, rect.bottom - 4)
+        title = str(self.opt("title", ""))
+        if title:
+            title_font = load_font(15, bold=True)
+            ctx.draw.text((rect.x + 2, rect.y + 2), title, fill=RED, font=title_font)
+            top = rect.y + 24
+        else:
+            top = rect.y + 2
+        body = (rect.x + 2, top, rect.right - 4, rect.bottom - 4)
 
         if not result.configured:
             draw_centered_text(ctx.draw, body, "天气未配置", load_font(13), BLACK)
@@ -44,24 +47,26 @@ class WeatherWidget(Widget):
         cond_font = load_font(13)
         meta_font = load_font(12)
 
-        ctx.draw.text((rect.x + 2, line_y + 6), result.city, fill=BLACK, font=city_font)
+        ctx.draw.text((rect.x + 2, top), result.city, fill=BLACK, font=city_font)
         cw = text_width(ctx.draw, result.city, city_font)
         if result.condition:
-            ctx.draw.text((rect.x + 8 + cw, line_y + 8), result.condition, fill=BLACK, font=cond_font)
+            ctx.draw.text((rect.x + 8 + cw, top + 2), result.condition, fill=BLACK, font=cond_font)
 
         temp_text = "--" if result.temp is None else f"{result.temp:.0f}°"
-        temp_y = line_y + 26
+        temp_y = top + 18
         ctx.draw.text((rect.x + 2, temp_y), temp_text, fill=RED, font=temp_font)
         tw = text_width(ctx.draw, temp_text, temp_font)
 
         meta_x = rect.x + 8 + tw
-        meta_y = temp_y + 2
         if result.temp_max is not None and result.temp_min is not None:
             hilo = f"高{result.temp_max:.0f}° 低{result.temp_min:.0f}°"
-            ctx.draw.text((meta_x, meta_y), hilo, fill=BLACK, font=meta_font)
+            ctx.draw.text((meta_x, temp_y + 6), hilo, fill=BLACK, font=meta_font)
 
         if result.aqi is not None:
             aqi_color = RED if result.aqi > 100 else BLACK
-            pm = f" PM{result.pm25:.0f}" if result.pm25 is not None else ""
-            aqi_text = f"AQI {result.aqi} {result.aqi_label}{pm}"
-            ctx.draw.text((meta_x, meta_y + 16), aqi_text, fill=aqi_color, font=meta_font)
+            aqi_text = f"AQI {result.aqi} {result.aqi_label}"
+            ctx.draw.text((rect.x + 2, temp_y + 34), aqi_text, fill=aqi_color, font=meta_font)
+            if result.pm25 is not None:
+                pm_text = f"PM2.5 {result.pm25:.0f}"
+                aw = text_width(ctx.draw, aqi_text, meta_font)
+                ctx.draw.text((rect.x + 10 + aw, temp_y + 34), pm_text, fill=aqi_color, font=meta_font)

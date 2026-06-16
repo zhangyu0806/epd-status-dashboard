@@ -4,7 +4,7 @@ param(
     [string]$DeviceNameHint = "",
     [string]$DeviceAddress = "",
     [double]$ScanTimeout = 25,
-    [int]$IntervalSeconds = 600,
+    [int]$IntervalSeconds = 420,
     [int]$InterleavedCount = 0,
     [bool]$ClearBeforeUpload = $false,
     [int]$ClearCycles = 1,
